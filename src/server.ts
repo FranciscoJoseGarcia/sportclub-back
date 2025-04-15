@@ -6,7 +6,7 @@ import { logger } from '@/utils/logger';
 import { SERVER } from '@/config';
 import { routes } from '@/routes';
 
-const app = express();
+export const app = express();
 
 // Middlewares
 app.use(express.json());
@@ -14,7 +14,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(loggingMiddleware);
 app.use(corsMiddleware);
 
+// Routes
 app.use('/api', routes);
+
+// Error middleware
 app.use(errorMiddleware);
 
 // Start server

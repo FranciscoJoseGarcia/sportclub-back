@@ -15,8 +15,15 @@ export const benefitsService = {
 
       logger.info('Cache miss for all benefits, fetching from API');
       const response = await axios.get(process.env.SPORT_CLUB_API!);
-      cache.set('all-benefits', response.data);
-      return response.data;
+      
+      if (!response?.data || !response?.data?.body || !response?.data?.body?.beneficios || !response?.data?.body?.beneficios?.length) {
+        logger.warn('No benefits found in API response');
+        return null;
+      }
+      
+      const benefits = response.data.body.beneficios;
+      cache.set('all-benefits', benefits);
+      return benefits;
     } catch (error) {
       logger.error('Error in benefitsService.getAll:', error);
       throw error;
@@ -34,12 +41,16 @@ export const benefitsService = {
 
       logger.info(`Cache miss for benefit ${id}, fetching from API`);
       const response = await axios.get(`${process.env.SPORT_CLUB_API}/${id}`);
-      cache.set(cacheKey, response.data);
-      return response.data;
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
+      
+      if (!response?.data || !response?.data?.body) {
+        logger.warn(`No benefit found for id ${id}`);
         return null;
       }
+      
+      const benefit = response.data.body;
+      cache.set(cacheKey, benefit);
+      return benefit;
+    } catch (error) {
       logger.error(`Error in benefitsService.getById for id ${id}:`, error);
       throw error;
     }
