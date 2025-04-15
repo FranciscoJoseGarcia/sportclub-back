@@ -127,6 +127,11 @@ El sistema utiliza Winston para logging estructurado con los siguientes niveles:
 - WARN: Advertencias
 - ERROR: Errores
 
+Los logs se guardan en dos archivos:
+- `logs/combined.log`: Contiene todos los logs (INFO, WARN, ERROR)
+- `logs/error.log`: Contiene solo los logs de error (ERROR)
+```
+
 ## Manejo de Errores
 
 El middleware de errores maneja:
