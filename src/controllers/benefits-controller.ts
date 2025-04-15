@@ -4,12 +4,22 @@ import { logger } from '@/utils/logger';
 
 export class BenefitsController {
   async getAll(req: Request, res: Response) {
-    const benefits = await benefitsService.getAll();
+    const page = req.query.page ? Number(req.query.page) : 1;
+    
+    if (isNaN(page) || page < 1) {
+      logger.warn('Invalid page number provided:', { page });
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid page number. Page must be a positive number',
+      });
+    }
+
+    const benefits = await benefitsService.getAll(page);
     
     if (benefits === null) {
       return res.status(404).json({
         status: 'error',
-        message: 'No benefits found',
+        message: `No benefits found for page ${page}`,
       });
     }
     

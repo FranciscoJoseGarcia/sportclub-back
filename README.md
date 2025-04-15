@@ -14,6 +14,7 @@
 - **Jest** para pruebas unitarias y de integración
 - **CORS** configurado para seguridad
 - Middlewares personalizados para logging y manejo de errores
+- **Paginación** para la lista de beneficios
 
 ## Requisitos previos
 
@@ -73,11 +74,17 @@ npm run test:coverage
 # Probar el health check
 curl http://localhost:3000/health
 
-# Probar obtener todos los beneficios
+# Probar obtener todos los beneficios (página 1 por defecto)
 curl http://localhost:3000/api/beneficios
+
+# Probar obtener beneficios de una página específica
+curl http://localhost:3000/api/beneficios?page=2
 
 # Probar obtener un beneficio específico
 curl http://localhost:3000/api/beneficios/1
+
+# Probar obtener beneficios por comercio
+curl http://localhost:3000/api/beneficios/comercio/full
 ```
 
 ## Estructura del Proyecto
@@ -103,8 +110,16 @@ sportclub-back/
 - `GET /health` - Verifica el estado del servidor
 
 ### Beneficios
-- `GET /api/beneficios` - Obtiene todos los beneficios
+- `GET /api/beneficios` - Obtiene todos los beneficios (página 1 por defecto)
+- `GET /api/beneficios?page={n}` - Obtiene los beneficios de la página n
 - `GET /api/beneficios/:id` - Obtiene un beneficio específico
+- `GET /api/beneficios/comercio/:value` - Obtiene beneficios por comercio
+
+### Parámetros de Paginación
+- `page`: Número de página (por defecto: 1)
+  - Debe ser un número positivo
+  - Si no se proporciona, se usa la página 1
+  - Si se proporciona un valor inválido, devuelve error 400
 
 ## Pruebas
 
@@ -114,6 +129,8 @@ El proyecto incluye tests para:
 - Middlewares (error, logging)
 - Rutas
 - Servidor
+- Paginación
+- Validación de parámetros
 
 Para ejecutar los tests:
 ```bash
@@ -124,13 +141,12 @@ npm test
 
 El sistema utiliza Winston para logging estructurado con los siguientes niveles:
 - INFO: Información general
-- WARN: Advertencias
+- WARN: Advertencias (ej: páginas inválidas)
 - ERROR: Errores
 
 Los logs se guardan en dos archivos:
 - `logs/combined.log`: Contiene todos los logs (INFO, WARN, ERROR)
 - `logs/error.log`: Contiene solo los logs de error (ERROR)
-```
 
 ## Manejo de Errores
 
@@ -139,13 +155,17 @@ El middleware de errores maneja:
 - Errores de autenticación (502)
 - Errores de comunicación con la API (502)
 - Errores internos del servidor (500)
+- Páginas inválidas (400)
+- Beneficios no encontrados (404)
 
 ## Caché
 
 - Implementado con node-cache
 - TTL de 5 minutos
-- Claves: 'all-benefits' y 'benefit-{id}'
-
+- Claves:
+  - `all-benefits-page-{n}` para beneficios paginados
+  - `benefit-{id}` para beneficios individuales
+  - `benefitsByName:{value}` para beneficios por comercio
 
 ## Licencia
 

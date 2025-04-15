@@ -5,27 +5,28 @@ import { logger } from '@/utils/logger';
 const cache = new NodeCache({ stdTTL: 300 }); 
 
 export const benefitsService = {
-  async getAll() {
+  async getAll(page: number = 1) {
     try {
-      const cachedData = cache.get('all-benefits');
+      const cacheKey = `all-benefits-page-${page}`;
+      const cachedData = cache.get(cacheKey);
       if (cachedData) {
-        logger.info('Cache hit for all benefits');
+        logger.info(`Cache hit for all benefits page ${page}`);
         return cachedData;
       }
 
-      logger.info('Cache miss for all benefits, fetching from API');
-      const response = await axios.get(process.env.SPORT_CLUB_API!);
+      logger.info(`Cache miss for all benefits page ${page}, fetching from API`);
+      const response = await axios.get(`${process.env.SPORT_CLUB_API}?page=${page}`);
       
       if (!response?.data?.body?.beneficios?.length) {
-        logger.warn('No data found in API response');
+        logger.warn(`No data found in API response for page ${page}`);
         return null;
       }
       
       const responseData = response.data.body;
-      cache.set('all-benefits', responseData);
+      cache.set(cacheKey, responseData);
       return responseData;
     } catch (error) {
-      logger.error('Error in benefitsService.getAll:', error);
+      logger.error(`Error in benefitsService.getAll for page ${page}:`, error);
       throw error;
     }
   },
