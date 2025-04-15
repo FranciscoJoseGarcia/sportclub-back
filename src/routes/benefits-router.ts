@@ -9,4 +9,6 @@ router.get('/', benefitsController.getAll as RequestHandler);
 
 router.get('/:id', benefitsController.getById as RequestHandler);
 
+router.get('/comercio/:value', benefitsController.getByCommerce as RequestHandler);
+
 export default router; 

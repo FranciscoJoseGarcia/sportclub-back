@@ -38,6 +38,29 @@ export class BenefitsController {
     
     res.json(benefit);
   }
+
+  async getByCommerce(req: Request, res: Response) {
+    const { value } = req.params;
+    
+    if (!value) {
+      logger.warn('No commerce value provided');
+      return res.status(400).json({
+        status: 'error',
+        message: 'Commerce value is required',
+      });
+    }
+    
+    const benefits = await benefitsService.getByCommerce(value);
+    
+    if (benefits === null) {
+      return res.status(404).json({
+        status: 'error',
+        message: `No benefits found for commerce: ${value}`,
+      });
+    }
+    
+    res.json(benefits);
+  }
 }
 
 export const benefitsController = new BenefitsController(); 

@@ -16,7 +16,7 @@ export const benefitsService = {
       logger.info('Cache miss for all benefits, fetching from API');
       const response = await axios.get(process.env.SPORT_CLUB_API!);
       
-      if (!response?.data || !response?.data?.body) {
+      if (!response?.data?.body?.beneficios?.length) {
         logger.warn('No data found in API response');
         return null;
       }
@@ -42,7 +42,7 @@ export const benefitsService = {
       logger.info(`Cache miss for benefit ${id}, fetching from API`);
       const response = await axios.get(`${process.env.SPORT_CLUB_API}/${id}`);
       
-      if (!response?.data || !response?.data?.body) {
+      if (!response?.data?.body) {
         logger.warn(`No data found for id ${id}`);
         return null;
       }
@@ -52,6 +52,32 @@ export const benefitsService = {
       return responseData;
     } catch (error) {
       logger.error(`Error in benefitsService.getById for id ${id}:`, error);
+      throw error;
+    }
+  },
+
+  async getByCommerce(value: string) {
+    try {
+      const cacheKey = `benefitsByName:${value}`;
+      const cachedData = cache.get(cacheKey);
+      if (cachedData) {
+        logger.info(`Cache hit for benefits by commerce: ${value}`);
+        return cachedData;
+      }
+
+      logger.info(`Cache miss for benefits by commerce: ${value}, fetching from API`);
+      const response = await axios.get(`${process.env.SPORT_CLUB_API}?archivado=false&comercio=${encodeURIComponent(value)}`);
+      
+      if (!response?.data?.body?.beneficios?.length) {
+        logger.warn(`No data found for commerce: ${value}`);
+        return null;
+      }
+      
+      const responseData = response.data.body;
+      cache.set(cacheKey, responseData);
+      return responseData;
+    } catch (error) {
+      logger.error(`Error in benefitsService.getByCommerce for value ${value}:`, error);
       throw error;
     }
   },
