@@ -41,12 +41,19 @@ describe('BenefitsService', () => {
 
   describe('getAll', () => {
     it('should return cached data when available', async () => {
-      const mockBenefits = [{ id: 1, name: 'Benefit 1' }];
-      memoryCache.set('all-benefits', mockBenefits);
+      const mockResponse = {
+        beneficios: [{ id: 1, name: 'Benefit 1' }],
+        totalPages: 513,
+        totalBeneficios: 2561,
+        currentPage: 1,
+        nextPage: 'https://api-beneficios.dev.sportclub.com.ar/api/beneficios?pageSize=5&page=2',
+        prevPage: null,
+      };
+      memoryCache.set('all-benefits', mockResponse);
 
       const result = await benefitsService.getAll();
 
-      expect(result).toEqual(mockBenefits);
+      expect(result).toEqual(mockResponse);
       expect(mockedAxios.get).not.toHaveBeenCalled();
       expect(logger.info).toHaveBeenCalledWith('Cache hit for all benefits');
     });
@@ -56,47 +63,50 @@ describe('BenefitsService', () => {
         data: {
           body: {
             beneficios: [{ id: 1, name: 'Benefit 1' }],
-          },
-        },
+            totalPages: 513,
+            totalBeneficios: 2561,
+            currentPage: 1,
+            nextPage: 'https://api-beneficios.dev.sportclub.com.ar/api/beneficios?pageSize=5&page=2',
+            prevPage: null,
+          }
+        }
       };
       mockedAxios.get.mockResolvedValue(mockResponse);
 
       const result = await benefitsService.getAll();
 
-      expect(result).toEqual(mockResponse.data.body.beneficios);
+      expect(result).toEqual(mockResponse.data.body);
       expect(mockedAxios.get).toHaveBeenCalledWith(process.env.SPORT_CLUB_API);
-      expect(memoryCache.get('all-benefits')).toEqual(mockResponse.data.body.beneficios);
+      expect(memoryCache.get('all-benefits')).toEqual(mockResponse.data.body);
       expect(logger.info).toHaveBeenCalledWith('Cache miss for all benefits, fetching from API');
     });
 
-    it('should return null when API response has no benefits', async () => {
+    it('should return null when API response has no data', async () => {
       const mockResponse = {
         data: {
-          body: {
-            beneficios: [],
-          },
-        },
+          body: null,
+        }
       };
       mockedAxios.get.mockResolvedValue(mockResponse);
 
       const result = await benefitsService.getAll();
 
       expect(result).toBeNull();
-      expect(logger.warn).toHaveBeenCalledWith('No benefits found in API response');
+      expect(logger.warn).toHaveBeenCalledWith('No data found in API response');
     });
 
     it('should return null when API response has invalid structure', async () => {
       const mockResponse = {
         data: {
           invalid: 'structure',
-        },
+        }
       };
       mockedAxios.get.mockResolvedValue(mockResponse);
 
       const result = await benefitsService.getAll();
 
       expect(result).toBeNull();
-      expect(logger.warn).toHaveBeenCalledWith('No benefits found in API response');
+      expect(logger.warn).toHaveBeenCalledWith('No data found in API response');
     });
 
     it('should propagate error when API call fails', async () => {
@@ -110,12 +120,17 @@ describe('BenefitsService', () => {
 
   describe('getById', () => {
     it('should return cached data when available', async () => {
-      const mockBenefit = { id: 1, name: 'Benefit 1' };
-      memoryCache.set('benefit-1', mockBenefit);
+      const mockResponse = {
+        id: 1,
+        name: 'Benefit 1',
+        description: 'Test description',
+        active: true,
+      };
+      memoryCache.set('benefit-1', mockResponse);
 
       const result = await benefitsService.getById('1');
 
-      expect(result).toEqual(mockBenefit);
+      expect(result).toEqual(mockResponse);
       expect(mockedAxios.get).not.toHaveBeenCalled();
       expect(logger.info).toHaveBeenCalledWith('Cache hit for benefit 1');
     });
@@ -123,8 +138,13 @@ describe('BenefitsService', () => {
     it('should fetch from API and cache when no cached data', async () => {
       const mockResponse = {
         data: {
-          body: { id: 1, name: 'Benefit 1' },
-        },
+          body: {
+            id: 1,
+            name: 'Benefit 1',
+            description: 'Test description',
+            active: true,
+          }
+        }
       };
       mockedAxios.get.mockResolvedValue(mockResponse);
 
@@ -140,28 +160,28 @@ describe('BenefitsService', () => {
       const mockResponse = {
         data: {
           body: null,
-        },
+        }
       };
       mockedAxios.get.mockResolvedValue(mockResponse);
 
       const result = await benefitsService.getById('1');
 
       expect(result).toBeNull();
-      expect(logger.warn).toHaveBeenCalledWith('No benefit found for id 1');
+      expect(logger.warn).toHaveBeenCalledWith('No data found for id 1');
     });
 
     it('should return null when API response has invalid structure', async () => {
       const mockResponse = {
         data: {
           invalid: 'structure',
-        },
+        }
       };
       mockedAxios.get.mockResolvedValue(mockResponse);
 
       const result = await benefitsService.getById('1');
 
       expect(result).toBeNull();
-      expect(logger.warn).toHaveBeenCalledWith('No benefit found for id 1');
+      expect(logger.warn).toHaveBeenCalledWith('No data found for id 1');
     });
 
     it('should propagate error when API call fails', async () => {
