@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+build/
+
+# Environment
+.env
+
+# IDE
+.vscode/
+
+# Logs
+combined.log
+error.log
+
+# Testing
+coverage/
+.nyc_output/
